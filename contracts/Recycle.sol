@@ -220,7 +220,17 @@ contract Recycle {
         uint256 _tusd = Math.min(IERC20(TUSD).balanceOf(msg.sender), IERC20(TUSD).allowance(msg.sender, address(this)));
         uint256 _ycrv = Math.min(IERC20(yCURVE).balanceOf(msg.sender), IERC20(yCURVE).allowance(msg.sender, address(this)));
 
-        _recycleExactAmounts(_sender, _dai, _usdc, _usdt, _tusd, _ycrv);
+        _recycleExactAmounts(msg.sender, _dai, _usdc, _usdt, _tusd, _ycrv);
     }
 
+    function recycleExact(
+        uint256 _dai, 
+        uint256 _usdc, 
+        uint256 _usdt,
+        uint256 _tusd,
+        uint256 _ycrv
+    ) external {
+        _recycleExactAmounts(msg.sender, _dai, _usdc, _usdt, _tusd, _ycrv);
+    }
+    
 }
