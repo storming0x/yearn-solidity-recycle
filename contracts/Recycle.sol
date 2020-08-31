@@ -18,6 +18,10 @@ interface IERC20 {
 //     function approve(address spender, uint256 amount) external returns (bool);
 // }
 
+interface DaiLike {
+  function permit(address, address, uint256, uint256, bool, uint8, bytes32, bytes32) external;
+}
+
 interface yVault {
     function deposit(uint256 _amount) external;
 }
@@ -232,5 +236,28 @@ contract Recycle {
     ) external {
         _recycleExactAmounts(msg.sender, _dai, _usdc, _usdt, _tusd, _ycrv);
     }
-    
+
+    // NOTE: example from 
+    // https://github.com/dapphub/ds-dach/blob/49a3ccfd5d44415455441feeb2f5a39286b8de71/src/withPermit.sol
+    // TODO: FE UI could use https://github.com/dmihal/eth-permit, need to validate
+    // same signature as Dai Permit here (without spender): https://github.com/makerdao/dss/blob/bbe8741d50240c995c8c78d5a96d1e532c8b0e88/src/dai.sol#L118
+    function recycleDaiWithPermit(
+        address owner,
+        address spender, 
+        uint256 nonce, 
+        uint256 expiry,
+        bool allowed,
+        uint8 v, 
+        bytes32 r, 
+        bytes32 s,
+        // added as extra precaution since permit has unlimited allowance
+        uint256 exactDaiAmount
+    ) external {
+        // TODO: add GSN integration? who pays for gas
+        // msg.sender is relayer
+        require(spender == address(this), "!NOT_RECYCLE");
+        DaiLike(DAI).permit(owner, address(this), nonce, expiry,
+                allowed, v, r, s);
+        _recycleExactAmounts(owner, exactDaiAmount, 0, 0, 0, 0);
+    }   
 }
